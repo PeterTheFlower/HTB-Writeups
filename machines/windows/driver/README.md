@@ -6,7 +6,7 @@
 | **OS**         | Windows 10 Enterprise (Build 10240)               |
 | **IP**         | 10.129.102.93                                     |
 | **Difficulty** | Easy                                              |
-| **Author**     | kalipiotr                                         |
+| **Author**     | PeterTheFlower/Pitiliti1                                         |
 | **Tags**       | SCF File Attack, NTLMv2 Relay, Responder, WinRM, Ricoh Printer Driver Privesc |
 
 ---
