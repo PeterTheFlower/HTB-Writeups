@@ -21,6 +21,7 @@ Each writeup follows a consistent, report-style format including **Summaries**, 
 | Machine | Difficulty | Primary Attack Vectors | Key Technologies / CVEs | Report |
 | :--- | :---: | :--- | :--- | :---: |
 | **[Union](machines/linux/union)** | Medium | Union SQLi (WAF Bypass), MySQL `FILE` Priv LFI, HTTP Header Command Injection, Sudo Abuse | MySQL `LOAD_FILE()`, `X-Forwarded-For` RCE, `sudo NOPASSWD` | [Read](machines/linux/union) |
+| **[MetaTwo](machines/linux/metatwo)** | Easy | BookingPress SQLi (CVE-2022-0739), Media XXE (CVE-2021-29447), FTP Cred Leak, Passpie GPG Cracking | WordPress, BookingPress, ProFTPD, Passpie, GPG | [Read](machines/linux/metatwo) |
 
 ---
 
@@ -30,6 +31,9 @@ Each writeup follows a consistent, report-style format including **Summaries**, 
 .
 └── machines/
     ├── linux/
+    │   ├── metatwo/
+    │   │   ├── README.md               # Full report with theory & recommendations
+    │   │   └── images_writeup/         # Screenshots (BookingPress nonce extraction)
     │   └── union/
     │       ├── README.md               # Full report with theory & recommendations
     │       └── images_writeup/         # Screenshots (web interface, SQLi, challenge)
