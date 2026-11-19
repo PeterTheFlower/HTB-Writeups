@@ -6,7 +6,7 @@
 | **OS**         | Linux (Ubuntu 20.04 LTS)                                           |
 | **IP**         | 10.129.96.75                                                       |
 | **Difficulty** | Medium                                                             |
-| **Author**     | kalipiotr                                                          |
+| **Author**     | PeterTheFlower/Pitiliti1                                                          |
 | **Tags**       | Web, SQL Injection, Union-Based, WAF Bypass, LFI via MySQL, Command Injection, HTTP Header Injection, Sudo Abuse |
 
 ---
