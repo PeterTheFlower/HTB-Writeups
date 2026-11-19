@@ -18,7 +18,9 @@ Each writeup follows a consistent, report-style format including **Summaries**, 
 
 ### 🐧 Linux
 
-*Writeups coming soon.*
+| Machine | Difficulty | Primary Attack Vectors | Key Technologies / CVEs | Report |
+| :--- | :---: | :--- | :--- | :---: |
+| **[Union](machines/linux/union)** | Medium | Union SQLi (WAF Bypass), MySQL `FILE` Priv LFI, HTTP Header Command Injection, Sudo Abuse | MySQL `LOAD_FILE()`, `X-Forwarded-For` RCE, `sudo NOPASSWD` | [Read](machines/linux/union) |
 
 ---
 
@@ -28,7 +30,9 @@ Each writeup follows a consistent, report-style format including **Summaries**, 
 .
 └── machines/
     ├── linux/
-    │   └── ...
+    │   └── union/
+    │       ├── README.md               # Full report with theory & recommendations
+    │       └── images_writeup/         # Screenshots (web interface, SQLi, challenge)
     └── windows/
         ├── driver/
         │   ├── README.md               # Full report with theory & recommendations
