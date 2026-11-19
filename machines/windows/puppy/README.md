@@ -7,7 +7,7 @@
 | **IP**         | 10.129.232.75                                                           |
 | **Domain**     | PUPPY.HTB                                                               |
 | **Difficulty** | Medium                                                                  |
-| **Author**     | kalipiotr                                                               |
+| **Author**     | PeterTheFlower/Pitiliti1                                                               |
 | **Tags**       | Active Directory, BloodHound, ACL Abuse, KeePass, Kerberoasting, DPAPI, GenericWrite, GenericAll |
 
 ---
