@@ -1,11 +1,6 @@
 # Hack The Box — Penetration Testing Writeups & Reports
 
-[![Hack The Box](https://img.shields.io/badge/Hack%20The%20Box-Writeups-brightgreen?style=flat&logo=hackthebox&logoColor=white)](https://www.hackthebox.com/)
-[![OS: Linux](https://img.shields.io/badge/OS-Linux-orange?style=flat&logo=linux&logoColor=white)](#-linux)
-[![OS: Windows](https://img.shields.io/badge/OS-Windows-blue?style=flat&logo=windows&logoColor=white)](#-windows)
-[![Author: Pitiliti1](https://img.shields.io/badge/Author-kalipiotr-blueviolet?style=flat)](https://github.com/kalipiotr)
-
-A curated collection of production-grade penetration testing writeups and vulnerability reports from completed Hack The Box machines. 
+A curated collection of production-grade penetration testing writeups and vulnerability reports from completed Hack The Box machines.
 
 Each report is structured as a professional engagement deliverable featuring **Executive & Technical Summaries**, **Theoretical Vulnerability Mechanics**, **Step-by-Step Proof-of-Concepts**, **Dead-End Analysis**, **MITRE ATT&CK Mapping**, and **Actionable Remediation Guidelines**.
 
