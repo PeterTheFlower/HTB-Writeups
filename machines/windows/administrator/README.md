@@ -7,7 +7,7 @@
 | **IP**         | 10.129.95.253                                                           |
 | **Domain**     | administrator.htb                                                       |
 | **Difficulty** | Medium                                                                  |
-| **Author**     | kalipiotr                                                               |
+| **Author**     | PeterTheFlower/Pitiliti1                                                               |
 | **Tags**       | Active Directory, BloodHound, ACL Abuse, ForceChangePassword, FTP, Password Safe, Targeted Kerberoasting, DCSync, Pass-the-Hash |
 
 ---
