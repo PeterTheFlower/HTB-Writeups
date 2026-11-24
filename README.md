@@ -12,12 +12,12 @@ Each report is structured as a professional engagement deliverable featuring **E
 
 | Total Machines | 🐧 Linux | 🪟 Windows | 🟢 Easy | 🟡 Medium | 🔴 Hard |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| **7** | **4** | **3** | **4** | **3** | **0** |
+| **8** | **5** | **3** | **4** | **4** | **0** |
 
 </div>
 
 ### ⚡ Quick Navigation
-- [🐧 Linux Machines](#-linux) (4)
+- [🐧 Linux Machines](#-linux) (5)
 - [🪟 Windows Machines](#-windows) (3)
 - [🏷️ Categorized Attack Index](#️-categorized-attack-index)
 - [🎯 Report Standards](#-report-standards)
@@ -29,11 +29,12 @@ Each report is structured as a professional engagement deliverable featuring **E
 ### 🐧 Linux
 
 <details open>
-<summary><b>Click to expand / collapse Linux machines (4)</b></summary>
+<summary><b>Click to expand / collapse Linux machines (5)</b></summary>
 <br>
 
 | Machine | Difficulty | Attack Vector Summary | Key Tech / CVEs | Report |
 | :--- | :---: | :--- | :--- | :---: |
+| **[Agile](machines/linux/agile)** | `Medium` 🟡 | Flask Traceback Disclosure ➔ Authenticated CSV Export LFI ➔ Werkzeug Offline PIN Regeneration & RCE ➔ MySQL Vault Credential Extraction ➔ Chrome DevTools Remote Debugging Abuse ➔ Sudoedit Argument Injection (CVE-2023-22809) | Python, Flask, Werkzeug, Chrome DevTools, Sudoedit, CVE-2023-22809 | [📄 Read](machines/linux/agile) |
 | **[Trick](machines/linux/trick)** | `Easy` 🟢 | DNS Zone Transfer (AXFR) ➔ SQLi Auth Bypass ➔ VHost Fuzzing ➔ Filter-Bypass LFI ➔ Fail2Ban Sudo Action Hijacking | BIND9, Nginx, PHP-FPM, SQLMap, Fail2Ban | [📄 Read](machines/linux/trick) |
 | **[Shoppy](machines/linux/shoppy)** | `Easy` 🟢 | NoSQL Injection (Auth Bypass & Blind Exfil) ➔ MD5 Cracking ➔ Targeted VHost Fuzzing ➔ Chat Credential Leak ➔ C++ Reversing ➔ Docker Group Abuse | Node.js, MongoDB, NoSQLi, Mattermost, Ghidra, Docker LPE | [📄 Read](machines/linux/shoppy) |
 | **[Union](machines/linux/union)** | `Medium` 🟡 | In-band UNION SQLi (WAF Bypass) ➔ MySQL `FILE` Priv LFI ➔ Credential Reuse ➔ `X-Forwarded-For` Command Injection ➔ Sudo NOPASSWD | MySQL `LOAD_FILE()`, `iptables` RCE, `sudo ALL` | [📄 Read](machines/linux/union) |
@@ -77,9 +78,10 @@ Quickly locate writeups by specific offensive techniques and attack families:
 <details>
 <summary><b>Web Application Security & Injection</b></summary>
 
+- **Debug Console Exploitation (RCE)**: [Agile](machines/linux/agile) *(Werkzeug PIN recalculation via LFI host artifacts)*
 - **NoSQL Injection**: [Shoppy](machines/linux/shoppy) *(Authentication bypass & Blind data extraction in MongoDB)*
 - **SQL Injection**: [Trick](machines/linux/trick) *(Auth Bypass & SQLMap file-read)*, [Union](machines/linux/union) *(Union-based WAF bypass)*, [MetaTwo](machines/linux/metatwo) *(BookingPress plugin CVE)*
-- **Local File Inclusion (LFI) & Path Traversal**: [Trick](machines/linux/trick) *(Nested `....//` filter bypass)*, [Union](machines/linux/union) *(via MySQL `LOAD_FILE()`)*
+- **Local File Inclusion (LFI) & Path Traversal**: [Agile](machines/linux/agile) *(CSV export parameter `fn` traversal)*, [Trick](machines/linux/trick) *(Nested `....//` filter bypass)*, [Union](machines/linux/union) *(via MySQL `LOAD_FILE()`)*
 - **XML External Entity (XXE)**: [MetaTwo](machines/linux/metatwo) *(WAV audio metadata XXE)*
 - **Command Injection (RCE)**: [Union](machines/linux/union) *(HTTP `X-Forwarded-For` injection)*
 
@@ -88,10 +90,12 @@ Quickly locate writeups by specific offensive techniques and attack families:
 <details>
 <summary><b>Linux Privilege Escalation & Misconfigurations</b></summary>
 
+- **Sudo & Sudoedit Vulnerabilities**: [Agile](machines/linux/agile) *(Sudoedit CVE-2023-22809 argument injection)*, [Union](machines/linux/union) *(`NOPASSWD: ALL`)*, [Trick](machines/linux/trick) *(`NOPASSWD: /etc/init.d/fail2ban restart`)*, [Shoppy](machines/linux/shoppy) *(`(deploy) /home/deploy/password-manager`)*
+- **Headless Browser & Debug Port Abuse**: [Agile](machines/linux/agile) *(Chrome DevTools Protocol inspection via loopback port 41829)*
+- **Virtualenv / Cron Script Hijacking**: [Agile](machines/linux/agile) *(Injecting payload into sourced `/app/venv/bin/activate` script)*
 - **Docker Socket / Group Abuse**: [Shoppy](machines/linux/shoppy) *(Host filesystem root mount via Docker daemon)*
 - **Binary Reverse Engineering & Sudo**: [Shoppy](machines/linux/shoppy) *(Ghidra decompilation of C++ password manager)*
 - **Service / Daemon Config Hijacking**: [Trick](machines/linux/trick) *(Fail2Ban `action.d` writable directory + sudo restart)*
-- **Sudo Misconfigurations**: [Union](machines/linux/union) *(`NOPASSWD: ALL`)*, [Trick](machines/linux/trick) *(`NOPASSWD: /etc/init.d/fail2ban restart`)*, [Shoppy](machines/linux/shoppy) *(`(deploy) /home/deploy/password-manager`)*
 - **Network / DNS Misconfigurations**: [Trick](machines/linux/trick) *(DNS AXFR zone transfer on ISC BIND)*
 
 </details>
@@ -99,6 +103,7 @@ Quickly locate writeups by specific offensive techniques and attack families:
 <details>
 <summary><b>Credential Harvesting & Vault Cracking</b></summary>
 
+- **Database & Application Vault Extraction**: [Agile](machines/linux/agile) *(MySQL `superpass` database & Chrome session vault dumping)*
 - **MD5 Hash Cracking**: [Shoppy](machines/linux/shoppy) *(Hashcat mode 0 on MongoDB exfiltrated user hash)*
 - **Chat Intelligence & Credential Leaks**: [Shoppy](machines/linux/shoppy) *(Disclosing SSH credentials in Mattermost)*
 - **KeePass Master Password Recovery**: [Puppy](machines/windows/puppy)
@@ -112,7 +117,7 @@ Quickly locate writeups by specific offensive techniques and attack families:
 
 ## 🎯 Report Standards
 
-Every writeup in this repository adheres to a strict 10-point technical standard:
+Every writeup in this repository adheres to a strict 7-point technical standard:
 
 1. **Metadata & Executive Summary**: Target context, attack chain overview, and business impact.
 2. **Reconnaissance & Service Enumeration**: Port matrix, Nmap outputs, and architectural theory blockquotes.
