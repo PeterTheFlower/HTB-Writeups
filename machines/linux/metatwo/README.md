@@ -344,67 +344,7 @@ root@meta2:~# cat /root/root.txt
 
 ---
 
-## 5. Findings & Recommendations
-
-### Finding 1 — Unauthenticated SQL Injection in BookingPress (CVE-2022-0739)
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1190 — Exploit Public-Facing Application |
-| **Description** | BookingPress v1.0.10 concatenates unvalidated input into an AJAX endpoint, allowing unauthenticated attackers to extract database tables, including administrator password hashes. |
-
-**Recommendations:**
-- Update BookingPress to version `1.0.11` or higher immediately.
-- Enforce the use of parameterized SQL queries via `$wpdb->prepare()` for all plugin database interactions.
-- Disable `wp_ajax_nopriv` actions that do not strictly require anonymous user access.
-
----
-
-### Finding 2 — Authenticated Media Library XXE Injection (CVE-2021-29447)
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1059 / T1005 — Data from Local System |
-| **Description** | WordPress Core 5.6.2 parses WAV audio files containing malicious XML entities in the `iXML` chunk without disabling external entity resolution, permitting arbitrary local file disclosure. |
-
-**Recommendations:**
-- Upgrade WordPress to version `5.7.1` or later, where external entity resolution is explicitly disabled (`libxml_disable_entity_loader(true)`).
-- Restrict audio and document MIME types permitted in media uploads if not strictly required for editorial workflows.
-
----
-
-### Finding 3 — Cleartext Credentials Stored in Accessible Files
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1552.001 — Credentials in Files |
-| **Description** | The file `mailer/send_email.php` stored plaintext SMTP/email credentials for user `jnelson`, which were identical to his operating system SSH password. |
-
-**Recommendations:**
-- Store application secrets and API credentials in environment variables or a dedicated secrets manager rather than hardcoded in source code files.
-- Restrict filesystem permissions on backup/test scripts to ensure they are not readable by shared service users like `metapress.htb`.
-- Enforce strict policies against credential reuse between application services and host OS user accounts.
-
----
-
-### Finding 4 — Insecure Passphrase for CLI Password Manager
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1555.005 — Password Managers |
-| **Description** | The user `jnelson` protected their Passpie GPG private key with a weak, single-word dictionary passphrase (`blink182`), which was easily cracked using standard wordlists. |
-
-**Recommendations:**
-- Mandate strong, high-entropy passphrases (20+ characters or multi-word passphrases) for encryption keys protecting master credential stores.
-- Consider utilizing system-level credential security solutions tied to hardware tokens (e.g., TPM, YubiKey) for root access delegation rather than local password manager vaults.
-
----
-
-## 6. Tools Used
+## 5. Tools Used
 
 | Tool | Purpose |
 |:-----|:--------|
@@ -421,7 +361,7 @@ root@meta2:~# cat /root/root.txt
 
 ---
 
-## 7. Lessons Learned
+## 6. Lessons Learned
 
 1. **Low-privilege CMS roles can be devastating** — initial access as `manager` did not permit direct code execution (plugins/themes were locked), but combining it with an unpatched Core vulnerability (CVE-2021-29447 XXE) completely compromised the host's files.
 2. **Always audit unlinked or auxiliary directories on FTP** — while `blog/` contained standard WordPress files, the adjacent `mailer/` directory held forgotten automation scripts containing raw plaintext credentials.
@@ -429,7 +369,7 @@ root@meta2:~# cat /root/root.txt
 
 ---
 
-## 8. References
+## 7. References
 
 - [CVE-2022-0739 — BookingPress SQL Injection (NVD)](https://nvd.nist.gov/vuln/detail/CVE-2022-0739)
 - [CVE-2021-29447 — WordPress XXE Injection (NVD)](https://nvd.nist.gov/vuln/detail/CVE-2021-29447)

@@ -299,105 +299,7 @@ evil-winrm -i 10.129.95.253 -u 'Administrator' \
 
 ---
 
-## 7. Findings & Recommendations
-
-### Finding 1 — Chained ForceChangePassword ACEs
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1098 — Account Manipulation |
-| **Description** | Olivia can reset Michael's password, and Michael can reset Benjamin's password, creating a transitive trust chain that allows a single compromised account to pivot through multiple users. |
-
-**Recommendations:**
-- Audit all `ForceChangePassword` / `Reset Password` extended rights using BloodHound or `dsacls`.
-- Restrict password reset rights to dedicated helpdesk accounts that are protected by MFA and PAM.
-- Implement **AdminSDHolder** protections for sensitive accounts to prevent unauthorized ACE propagation.
-- Monitor for Event ID 4724 (password reset by admin) and correlate with ticket/request systems — an unexpected reset should trigger an alert.
-
----
-
-### Finding 2 — Sensitive File on FTP Server
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1552.001 — Unsecured Credentials: Credentials in Files |
-| **Description** | A Password Safe database (`Backup.psafe3`) containing domain credentials was accessible via FTP to the user `benjamin`. |
-
-**Recommendations:**
-- Remove password databases from FTP servers and shared storage.
-- If FTP must be used, restrict it to specific IP ranges and require TLS (FTPS) to prevent credential sniffing.
-- Audit FTP directory contents regularly and ensure no sensitive files are stored there.
-- Consider replacing FTP entirely with SFTP or SCP, which provide stronger authentication and encryption.
-
----
-
-### Finding 3 — Weak Password Safe Master Password
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1110.002 — Brute Force: Password Cracking |
-| **Description** | The Password Safe database was protected with the master password `tekieromucho`, which was cracked in under a second using `rockyou.txt`. |
-
-**Recommendations:**
-- Enforce minimum 20+ character passphrases for password database master passwords.
-- Use key files as an additional authentication factor.
-- Increase the iteration count / memory cost of the KDF to make cracking more expensive.
-- Migrate to an enterprise password management solution with centralized access control and audit logging.
-
----
-
-### Finding 4 — GenericWrite ACE Leading to Targeted Kerberoasting
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1558.003 — Steal or Forge Kerberos Tickets: Kerberoasting |
-| **Description** | Emily has GenericWrite over ethan, allowing her to add a `servicePrincipalName` and perform targeted Kerberoasting. Ethan's password (`limpbizkit`) was cracked from `rockyou.txt`. |
-
-**Recommendations:**
-- Remove unnecessary GenericWrite ACEs from all user objects.
-- Monitor for SPN modifications on user accounts (Event ID 5136 with attribute `servicePrincipalName`) — legitimate SPN changes are rare and should be tracked.
-- Enforce strong passwords (20+ characters) for all accounts with elevated privileges, especially those with replication rights.
-- Deploy **Managed Service Accounts (gMSA)** for service accounts — their passwords are 120+ character random strings, rotated automatically, making Kerberoasting infeasible.
-
----
-
-### Finding 5 — DCSync Privileges on Non-Admin Account
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1003.006 — OS Credential Dumping: DCSync |
-| **Description** | The user `ethan` has `DS-Replication-Get-Changes` and `DS-Replication-Get-Changes-All` rights on the domain object, allowing a full DCSync attack that extracts every user's NT hash. |
-
-**Recommendations:**
-- **Immediately remove** replication rights from `ethan` and any other non-DC accounts. Only Domain Controllers, Domain Admins, and Enterprise Admins should have these rights.
-- Audit replication rights using: `Get-ACL "AD:\DC=administrator,DC=htb" | Select-Object -ExpandProperty Access | Where-Object {$_.ObjectType -eq "1131f6ad-9c07-11d1-f79f-00c04fc2dcd2"}` (the GUID for `DS-Replication-Get-Changes-All`).
-- Monitor for DCSync activity by alerting on Event ID 4662 with the replication GUIDs from non-DC sources.
-- Deploy **Microsoft Defender for Identity** (or equivalent) which has built-in DCSync detection.
-
----
-
-### Finding 6 — Weak Passwords for Privileged Accounts
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1078 — Valid Accounts |
-| **Description** | Multiple domain accounts use weak or dictionary-based passwords: `ethan:limpbizkit`, `tekieromucho` (Password Safe master). These were cracked in seconds with standard wordlists. |
-
-**Recommendations:**
-- Deploy a **password filter** (e.g., Azure AD Password Protection) that blocks passwords found in common wordlists and their variations.
-- Enforce minimum 14-character passwords with complexity requirements for all domain accounts, and 20+ characters for privileged accounts.
-- Conduct periodic password audits by running offline cracking against NTDS.DIT to identify weak passwords proactively.
-- Implement Fine-Grained Password Policies (FGPPs) for privileged accounts with stricter requirements than standard users.
-
----
-
-## 8. Tools Used
+## 7. Tools Used
 
 | Tool             | Purpose                                             |
 |------------------|------------------------------------------------------|
@@ -416,7 +318,7 @@ evil-winrm -i 10.129.95.253 -u 'Administrator' \
 
 ---
 
-## 9. Lessons Learned
+## 8. Lessons Learned
 
 1. **Targeted Kerberoasting > password reset when possible** — against ethan, password reset was blocked (likely by a minimum password age policy), but GenericWrite still allowed us to add an SPN and Kerberoast. This demonstrates why understanding multiple exploitation techniques for each ACE type is critical — if one path is blocked, another may work.
 

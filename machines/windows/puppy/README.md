@@ -366,106 +366,7 @@ evil-winrm -i 10.129.232.75 -u 'steph.cooper_adm' -p 'FivethChipOnItsWay2025!'
 
 ---
 
-## 8. Findings & Recommendations
-
-### Finding 1 — Overly Permissive ACLs on AD Objects
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1222.001 — File and Directory Permissions Modification: Windows File and Directory Permissions |
-| **Description** | Multiple AD objects have excessive ACE assignments: `levi.james` has GenericWrite over the DEVELOPERS group, and the SENIOR DEVS group has GenericAll over `adam.silver`. These misconfigurations allow any compromised low-privilege user to escalate through the domain. |
-
-**Recommendations:**
-- Conduct a comprehensive AD ACL audit using tools like `PingCastle`, `Purple Knight`, or `BloodHound` (run as a defender).
-- Remove all GenericWrite/GenericAll ACEs that are not strictly required. Follow the **principle of least privilege** — most users and groups should have no custom ACEs on other AD objects.
-- Implement **AD tiering** (Tier 0/1/2) and enforce that lower-tier accounts cannot hold permissions over higher-tier objects.
-- Monitor for ACL modifications using Event IDs 5136 (Directory Service Changes) with Sysmon or a SIEM.
-
----
-
-### Finding 2 — Weak KeePass Master Password
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1110.002 — Brute Force: Password Cracking |
-| **Description** | The `recovery.kdbx` KeePass database was protected with the master password `liverpool`, which was cracked in seconds using `rockyou.txt`. |
-
-**Recommendations:**
-- Enforce a minimum master password length of 20+ characters for password databases, ideally a passphrase (e.g., `correct-horse-battery-staple`).
-- Enable a **key file** in addition to the master password (two-factor database unlock).
-- Use Argon2d with high memory/iteration parameters to increase cracking difficulty.
-- Never store password databases on shared network drives — use a centralized password manager with RBAC (e.g., HashiCorp Vault, CyberArk, 1Password Business).
-
----
-
-### Finding 3 — Cleartext Credentials in Backup File
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1552.001 — Unsecured Credentials: Credentials in Files |
-| **Description** | The file `nms-auth-config.xml.bak` within `C:\Backups\site-backup-2024-12-30.zip` contains cleartext LDAP bind credentials for `steph.cooper`. |
-
-**Recommendations:**
-- Encrypt all backup archives with strong passwords or asymmetric encryption.
-- Restrict access to backup directories to dedicated backup service accounts only — no regular user should have read access.
-- Replace cleartext credentials in configuration files with encrypted secrets management (e.g., Windows Credential Manager, Azure Key Vault, HashiCorp Vault).
-- Implement automated scanning for credentials in files using tools like `TruffleHog`, `git-secrets`, or CrowdStrike's credential exposure detection.
-- Rotate all credentials found in exposed backup files immediately.
-
----
-
-### Finding 4 — DPAPI-Stored Admin Credentials on User Workstation
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1555.003 — Credentials from Password Stores: Credentials from Web Browsers / DPAPI |
-| **Description** | The user `steph.cooper` saved Domain Admin credentials (`steph.cooper_adm`) in Windows Credential Manager, protected only by DPAPI. Since DPAPI Master Keys can be decrypted with the user's password, compromising the regular account immediately compromises the admin account. |
-
-**Recommendations:**
-- Prohibit saving privileged credentials in Windows Credential Manager via GPO.
-- Enforce the use of **Privileged Access Workstations (PAWs)** for all Tier 0 administrative tasks — admin accounts should never be used or stored on regular workstations.
-- Implement **Microsoft LAPS** or a PAM solution to rotate admin passwords automatically.
-- Deploy credential guard (Windows Defender Credential Guard) to protect DPAPI master keys from extraction.
-- Educate administrators on the risks of storing `_adm` credentials in Credential Manager on their daily-use workstation.
-
----
-
-### Finding 5 — Disabled Accounts with Recoverable Credentials
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟡 Medium |
-| **MITRE**     | T1098 — Account Manipulation |
-| **Description** | The `adam.silver` account was disabled but retained all ACL-based access (Remote Management Users membership). An attacker with GenericAll could re-enable it and use it as a pivot point. |
-
-**Recommendations:**
-- When disabling accounts, also remove all group memberships and reset the password.
-- Consider deleting or moving disabled accounts to a dedicated "Disabled Users" OU with restrictive ACLs.
-- Implement automated lifecycle management — accounts inactive for 90+ days should trigger review workflows.
-- Monitor for account re-enablement events (Event ID 4722) and flag them for investigation.
-
----
-
-### Finding 6 — Password Database on Network Share
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1552.001 — Unsecured Credentials: Credentials in Files |
-| **Description** | A KeePass database (`recovery.kdbx`) containing multiple domain user passwords was stored on the DEV SMB share, accessible to all members of the DEVELOPERS group. |
-
-**Recommendations:**
-- Centralize credential management — replace file-based password databases on shares with a proper enterprise password management solution.
-- If KeePass must be used, store databases on encrypted, access-controlled storage with audit logging.
-- Regularly audit SMB share permissions and content for sensitive files (`.kdbx`, `.psafe3`, `.key`, credential files).
-
----
-
-## 9. Tools Used
+## 8. Tools Used
 
 | Tool             | Purpose                                        |
 |------------------|-------------------------------------------------|
@@ -486,7 +387,7 @@ evil-winrm -i 10.129.232.75 -u 'steph.cooper_adm' -p 'FivethChipOnItsWay2025!'
 
 ---
 
-## 10. Lessons Learned
+## 9. Lessons Learned
 
 1. **ACL abuse is the backbone of modern AD attacks** — this box chained GenericWrite → GenericAll across multiple hops. In real environments, misconfigured ACLs are extremely common because administrators rarely audit them. BloodHound should be part of every AD assessment.
 

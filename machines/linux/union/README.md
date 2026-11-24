@@ -324,82 +324,7 @@ root@union:~# cat /root/root.txt
 
 ---
 
-## 5. Findings & Recommendations
-
-### Finding 1 — Union-Based SQL Injection in Registration Form
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1190 — Exploit Public-Facing Application |
-| **Description** | The `player` parameter in `/index.php` concatenates unsanitized user input into dynamic SQL queries, enabling complete database disclosure. A client/server-side regex blacklist was easily bypassed. |
-
-**Recommendations:**
-- Use **Prepared Statements and Parameterized Queries**.
-- Never rely on keyword blacklists or custom regex filters as a defense against SQL injection.
-- Implement an enterprise Web Application Firewall (WAF) using positive security models (allowlists) to complement code-level remediation.
-
----
-
-### Finding 2 — Overly Permissive Database Privileges (`FILE` Grant)
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1005 — Data from Local System |
-| **Description** | The database user `uhc` was granted administrative privileges including `FILE` and `SUPER`, enabling direct read access to local system configuration files via `LOAD_FILE()`. |
-
-**Recommendations:**
-- Apply the **Principle of Least Privilege (PoLP)** to database accounts. A web application only requires `SELECT`, `INSERT`, `UPDATE`, and `DELETE` on specific application tables.
-- Revoke administrative grants: `REVOKE FILE, SUPER, RELOAD, SHUTDOWN ON *.* FROM 'uhc'@'localhost';`.
-- Enforce `secure_file_priv` in MySQL configuration (`my.cnf`) to restrict file import/export operations to a non-sensitive, dedicated directory (or disable it completely by setting `secure_file_priv = NULL`).
-
----
-
-### Finding 3 — OS Command Injection via HTTP Headers
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1059.004 — Command and Scripting Interpreter: Unix Shell |
-| **Description** | `firewall.php` passes the client-supplied `X-Forwarded-For` HTTP request header directly into a shell execution call (`system("sudo /usr/sbin/iptables ...")`) without validation, resulting in unauthenticated/authenticated Remote Code Execution. |
-
-**Recommendations:**
-- Avoid direct shell execution. If IP-based firewall operations are mandatory, invoke system utilities through parameterized APIs without shell invocation (e.g., Python `subprocess.run(["/usr/sbin/iptables", "-A", "INPUT", "-s", validated_ip, "-j", "ACCEPT"])`).
-- If shell execution cannot be avoided, sanitize inputs .
-
----
-
-### Finding 4 — Insecure Sudo Configuration (`NOPASSWD: ALL`)
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1548.003 — Abuse Elevation Control Mechanism: Sudo and Sudo Caching |
-| **Description** | The `www-data` web daemon user was granted unrestricted sudo rights without password authentication in `/etc/sudoers`, allowing anyone who achieves web execution to immediately claim root. |
-
-**Recommendations:**
-- Remove `www-data ALL=(ALL : ALL) NOPASSWD: ALL` from `/etc/sudoers`.
-- If the web service specifically requires firewall adjustment capabilities, restrict sudo permissions strictly to that command and its exact arguments, or manage firewall rules via an unprivileged daemon/socket.
-
----
-
-### Finding 5 — Plaintext Password Storage and Credential Reuse
-
-| Attribute     | Detail |
-|:--------------|:-------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1078.003 — Valid Accounts: Local Accounts |
-| **Description** | Database credentials stored in `config.php` were identical to the system user `uhc`'s login password, enabling immediate lateral movement over SSH. |
-
-**Recommendations:**
-- Never reuse passwords across service accounts and operating system user accounts.
-- Restrict read permissions on web configuration files containing secrets (`chmod 640 config.php; chown root:www-data config.php`).
-- Store database credentials using environmental variables or a dedicated secrets management daemon .
-
----
-
-## 6. Tools Used
+## 5. Tools Used
 
 | Tool | Purpose |
 |:-----|:--------|
@@ -412,7 +337,7 @@ root@union:~# cat /root/root.txt
 
 ---
 
-## 7. Lessons Learned
+## 6. Lessons Learned
 
 1. **HTTP headers are unverified user input** — headers like `X-Forwarded-For` are regularly manipulated in attacks. Never pass header values directly into operating system commands without strict canonical IP validation.
 2. **Database privileges must be locked down** — a standard web SQL injection should remain confined to table reading; the `FILE` privilege escalated a database vulnerability into full system file disclosure.
@@ -421,7 +346,7 @@ root@union:~# cat /root/root.txt
 
 ---
 
-## 8. References
+## 7. References
 
 - [PortSwigger — SQL Injection (UNION Attacks)](https://portswigger.net/web-security/sql-injection/union-attacks)
 - [OWASP — Command Injection](https://owasp.org/www-community/attacks/Command_Injection)

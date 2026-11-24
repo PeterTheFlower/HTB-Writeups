@@ -544,91 +544,7 @@ cat /root/root.txt
 
 ---
 
-## 5. Findings & Recommendations
-
-### Finding 1 — DNS Zone Transfer Allowed from Any Source (AXFR)
-
-| Attribute       | Detail                                                                                                                                                                             |
-| :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Severity**    | 🔵 Low                                                                                                                                                                             |
-| **MITRE**       | T1590.002 — Gather Victim Network Information: DNS                                                                                                                                 |
-| **Description** | The authoritative BIND DNS server permits AXFR zone transfers from any IP address, disclosing all DNS records including internal virtual host names (`preprod-payroll.trick.htb`). |
-
-**Recommendations:**
-- Restrict zone transfers to authorized secondary nameserver IPs only using `allow-transfer` ACLs in the BIND `named.conf` configuration.
-- Implement TSIG (Transaction Signatures) for authenticated zone transfers between primary and secondary DNS servers.
-- Monitor DNS query logs for AXFR requests from unauthorized sources and alert on anomalies.
-- Consider using DNS Response Rate Limiting (RRL) to mitigate reconnaissance activity.
-
----
-
-### Finding 2 — SQL Injection Authentication Bypass and Arbitrary File Read
-
-| Attribute       | Detail                                                           |
-|:----------------|:-----------------------------------------------------------------|
-| **Severity**    | 🔴 Critical                                                     |
-| **MITRE**       | T1190 — Exploit Public-Facing Application                        |
-| **Description** | The payroll application login form (`ajax.php?action=login`) concatenates unsanitized user input into SQL queries, allowing boolean-based authentication bypass and arbitrary file read via the `FILE` privilege granted to the MySQL application user. |
-
-**Recommendations:**
-- Use **Prepared Statements and Parameterized Queries** (PDO or MySQLi) for all database interactions.
-- Apply the **Principle of Least Privilege** to the MySQL application user — revoke `FILE`, `SUPER`, and all administrative grants; restrict to `SELECT`, `INSERT`, `UPDATE`, `DELETE` on application-specific tables only.
-- Enforce `secure_file_priv = NULL` in `my.cnf` to completely disable `LOAD_FILE()` and `INTO OUTFILE` operations.
-- Implement a Web Application Firewall (WAF) with positive security model as a defense-in-depth layer.
-- Avoid storing application credentials in plaintext within the database.
-
----
-
-### Finding 3 — Local File Inclusion with Path Traversal Filter Bypass
-
-| Attribute       | Detail                                                           |
-|:----------------|:-----------------------------------------------------------------|
-| **Severity**    | 🔴 Critical                                                     |
-| **MITRE**       | T1083 — File and Directory Discovery                             |
-| **Description** | The marketing application's `page` parameter performs file inclusion based on user-supplied input. A single-pass `../` removal filter is trivially bypassed using `....//` sequences, enabling arbitrary file read with the web application's user privileges (`michael`), including SSH private keys. |
-
-**Recommendations:**
-- Implement an **allowlist** of permitted page values rather than relying on blacklist-based path sanitization.
-- Use `realpath()` or `basename()` in PHP to canonicalize paths before inclusion and verify they fall within the intended webroot directory.
-- Disable `allow_url_include` in `php.ini` and restrict `open_basedir` to the application directory.
-- Run PHP-FPM pools with minimal filesystem permissions — the web application user should not have read access to SSH keys, `/etc/passwd`, or other sensitive files outside the webroot.
-- Separate web service accounts from interactive user accounts — a PHP-FPM pool should never run as a user with SSH access and sensitive private keys.
-
----
-
-### Finding 4 — Fail2Ban Privilege Escalation via Writable Action Directory
-
-| Attribute       | Detail                                                                                                                                                                                                                                                                                                                                                             |
-| :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Severity**    | 🟠 High                                                                                                                                                                                                                                                                                                                                                            |
-| **MITRE**       | T1548.003 — Abuse Elevation Control Mechanism: Sudo and Sudo Caching                                                                                                                                                                                                                                                                                               |
-| **Description** | The Fail2Ban `action.d` directory (`/etc/fail2ban/action.d/`) is writable by the `security` group, to which user `michael` belongs. Combined with the sudoers entry allowing `michael` to restart Fail2Ban as root without a password, this enables arbitrary command execution as root by injecting commands into the `actionban` directive and triggering a ban. |
-
-**Recommendations:**
-- Remove group write permissions on Fail2Ban configuration directories: `chmod 755 /etc/fail2ban/action.d/; chown root:root /etc/fail2ban/action.d/`.
-- Restrict the sudoers entry to reload rather than restart, or remove it entirely if not operationally required.
-- If non-root users must manage Fail2Ban, use a dedicated management interface with strict input validation rather than granting direct service control.
-- Consider deploying SELinux or AppArmor policies to restrict Fail2Ban's execution context.
-
----
-
-### Finding 5 — Cleartext Credentials in Web Application
-
-| Attribute       | Detail                                                           |
-|:----------------|:-----------------------------------------------------------------|
-| **Severity**    | 🟡 Medium                                                       |
-| **MITRE**       | T1552.001 — Unsecured Credentials: Credentials in Files          |
-| **Description** | The payroll application stores user credentials (`Enemigosss:SuperGucciRainbowCake`) in plaintext within the database and exposes them in HTML input field `value` attributes in the user edit form, visible to any authenticated administrator or via response interception. |
-
-**Recommendations:**
-- Hash all stored passwords using a modern adaptive algorithm (bcrypt, Argon2id) with per-user salting.
-- Never populate password fields with actual credential values in HTML responses — use empty fields with placeholder text for password changes.
-- Enforce minimum password complexity requirements and regular rotation policies.
-- Conduct periodic database audits to identify and remediate plaintext credential storage.
-
----
-
-## 6. Tools Used
+## 5. Tools Used
 
 | Tool       | Purpose                                                                |
 |:-----------|:-----------------------------------------------------------------------|
@@ -646,7 +562,7 @@ cat /root/root.txt
 
 ---
 
-## 7. Lessons Learned
+## 6. Lessons Learned
 
 1. **DNS zone transfers remain a goldmine** — Even on modern systems, misconfigured BIND servers may permit unrestricted AXFR transfers. Always test for zone transfers early in reconnaissance, as they can reveal hidden virtual hosts, internal subdomains, and infrastructure details that are invisible to standard brute-forcing techniques.
 
@@ -660,7 +576,7 @@ cat /root/root.txt
 
 ---
 
-## 8. References
+## 7. References
 
 - [HackTricks — DNS Enumeration & Zone Transfer](https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-dns.html)
 - [OWASP — SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)

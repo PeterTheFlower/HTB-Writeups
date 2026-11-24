@@ -542,101 +542,7 @@ flowchart TD
 
 ---
 
-## 5. Findings & Recommendations
-
-### Finding 1 — NoSQL Injection Authentication Bypass & User Enumeration
-
-| Attribute       | Detail                                                                                                                                                                                                  |
-| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Severity**    | 🟠 High                                                                                                                                                                                                 |
-| **MITRE**       | T1190 — Exploit Public-Facing Application                                                                                                                                                               |
-| **CWE**         | CWE-943: Improper Neutralization of Special Elements in Data Query Logic                                                                                                                                |
-| **Description** | The authentication portal at `/login` and the search interface at `/admin/search-users` dynamically interpolate unvalidated user input into MongoDB queries, permitting arbitrary JavaScript injection. |
-
-**Recommendations:**
-- Refactor all database queries to utilize parameterized query operators or typed Object Document Mappers (ODMs) such as Mongoose with strict schema definitions.
-- Avoid using `$where`, `mapReduce`, or raw JavaScript evaluation inside database queries.
-- Implement strict input validation, type checking, and schema validation on all incoming request bodies before database operations.
-- Ensure authentication logic relies on constant-time, cryptographically secure password verification algorithms (e.g., Argon2id or bcrypt).
-
----
-
-### Finding 2 — Unsecured Cleartext Credentials in Corporate Chat
-
-| Attribute       | Detail                                                                                                                                                                                                 |
-| :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Severity**    | 🟡 Medium                                                                                                                                                                                              |
-| **MITRE**       | T1552.001 — Unsecured Credentials: Credentials in Files / Communications                                                                                                                               |
-| **Description** | Internal Mattermost communication channels contained cleartext system credentials for the user account `jaeger`, allowing an attacker with valid application credentials to pivot into the OS via SSH. |
-
-**Recommendations:**
-- Enforce strict policies and automated DLP (Data Loss Prevention) scanning rules across chat and collaboration platforms to detect and block secret sharing.
-- Mandate SSH key-based authentication with hardware tokens (FIDO2) or passphrase protection, disabling password-based SSH authentication (`PasswordAuthentication no`).
-- Immediately rotate all compromised credentials across the environment.
-
----
-
-### Finding 3 — Local Privilege Escalation via Docker Group Membership
-
-| Attribute       | Detail                                                                                                                                                                                            |
-| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Severity**    | 🟠 High                                                                                                                                                                                           |
-| **MITRE**       | T1068 — Exploitation for Privilege Escalation                                                                                                                                                    |
-| **Description** | The `deploy` account is a member of the local `docker` group. This configuration allows unrestricted interaction with the Docker socket, enabling root filesystem mounts and host takeover. |
-
-**Recommendations:**
-- Remove non-root users from the `docker` group unless strictly required. Treat access to the Docker daemon socket as root equivalent.
-- Migrate to Rootless Docker or Podman, which operate within unprivileged user namespaces without requiring root privileges or socket access.
-- Implement Docker daemon authorization plugins (AuthZ) to restrict unauthorized volume mounting of sensitive host paths such as `/`, `/etc`, or `/root`.
-
----
-
-### Finding 4 — Weak Password Hashing & Inadequate Password Complexity
-
-| Attribute       | Detail                                                                                                                                |
-| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| **Severity**    | 🟡 Medium                                                                                                                             |
-| **MITRE**       | T1110.002 — Brute Force: Password Cracking                                                                                            |
-| **Description** | User passwords within MongoDB were stored as un-salted MD5 hashes, allowing offline cracking using standard wordlists within seconds. |
-
-**Recommendations:**
-- Deprecate MD5 and SHA-1 for password storage immediately.
-- Transition to modern memory-hard password hashing algorithms such as Argon2id or bcrypt (with a minimum work factor of 12).
-- Enforce strict password complexity and length requirements across all corporate platforms to resist dictionary attacks.
-
----
-
-### Finding 5 — Hardcoded Credentials in Compiled Application Binary
-
-| Attribute       | Detail                                                                                                                                                                                  |
-| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Severity**    | 🟡 Medium                                                                                                                                                                               |
-| **MITRE**       | T1552.001 — Unsecured Credentials: Credentials in Files                                                                                                                                 |
-| **Description** | The `/home/deploy/password-manager` binary assembled and verified a hardcoded master password (`Sample`) in memory, permitting anyone with execution access to recover deploy credentials. |
-
-**Recommendations:**
-- Eliminate hardcoded secrets from compiled code and source repositories.
-- Use centralized enterprise secret management solutions (e.g., HashiCorp Vault, AWS Secrets Manager) with role-based access control and short-lived tokens.
-- Review and audit custom sudo entries; avoid allowing users to run custom binaries with elevated privileges unless strictly validated and signed.
-
----
-
-### Finding 6 — Information Disclosure via Unauthenticated Telemetry Endpoint
-
-| Attribute       | Detail                                                                                                                                                                                        |
-| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Severity**    | 🔵 Low                                                                                                                                                                                        |
-| **MITRE**       | T1592 — Gather Victim Host Information                                                                                                                                                        |
-| **Description** | Port 9093 exposed raw Prometheus metrics without authentication, revealing internal application plugins, Go runtime versions, and software components (Mattermost Playbooks).                 |
-
-**Recommendations:**
-- Restrict access to telemetry, metrics, and debugging endpoints (`/metrics`, port 9093) to internal monitoring subnets or localhost only.
-- Implement mutual TLS (mTLS) or reverse proxy authentication for Prometheus scrapers.
-- Audit network boundary firewalls to ensure non-public service ports are blocked from external ingress.
-
----
-
-## 6. Tools Used
+## 5. Tools Used
 
 | Tool                 | Purpose                                                                               |
 | :------------------- | :------------------------------------------------------------------------------------ |
@@ -652,7 +558,7 @@ flowchart TD
 
 ---
 
-## 7. Lessons Learned
+## 6. Lessons Learned
 
 1. **Telemetry endpoints provide invaluable reconnaissance signals** — When a full port scan reveals high-numbered non-standard ports hosting Prometheus or Go HTTP servers, inspecting metric names can disclose otherwise hidden infrastructure. In this case, Prometheus metrics on port 9093 revealed Mattermost long before any virtual host was discovered.
 2. **Context-driven wordlist selection is critical** — Generic subdomain wordlists often fail against specific application deployments. Recognizing that Mattermost was active prompted the switch to a comprehensive inventory wordlist (`bug-bounty-program-subdomains-trickest-inventory.txt`), which immediately surfaced the `mattermost.shoppy.htb` virtual host.
@@ -661,7 +567,7 @@ flowchart TD
 
 ---
 
-## 8. References
+## 7. References
 
 - [OWASP — NoSQL Injection](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection)
 - [HackTricks — NoSQL Injection](https://book.hacktricks.wiki/en/pentesting-web/nosql-injection.html)

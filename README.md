@@ -119,9 +119,8 @@ Every writeup in this repository adheres to a strict 10-point technical standard
 3. **Initial Access**: Deep dive into the vulnerability mechanics, payload crafting, and step-by-step execution.
 4. **Privilege Escalation**: Root/SYSTEM vector analysis, permission enumeration, and **comprehensive dead-end documentation**.
 5. **Attack Path Flow**: Clean ASCII / Mermaid diagram visualizing the full exploitation sequence.
-6. **Findings & Vulnerability Reports**: Formal reports with severity ratings, **MITRE ATT&CK** tags, and concrete remediation steps.
-7. **Tools Used**: Comprehensive matrix of tooling utilized across the engagement.
-8. **Lessons Learned**: Senior-level operational reflections, defensive takeaways, and methodology improvements.
+6. **Tools Used**: Comprehensive matrix of tooling utilized across the engagement.
+7. **Lessons Learned**: Senior-level operational reflections, defensive takeaways, and methodology improvements.
 
 ---
 

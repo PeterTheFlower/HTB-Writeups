@@ -333,108 +333,7 @@ C:\Windows\system32> type c:\Users\Administrator\Desktop\root.txt
 
 ---
 
-## 5. Findings & Recommendations
-
-### Finding 1 — Default Credentials on Web Application
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 High |
-| **MITRE**     | T1078 — Valid Accounts |
-| **Description** | The MFP Firmware Update Center uses `admin:admin` as default credentials, granting full access to the file upload functionality. |
-
-**Recommendations:**
-- Enforce strong, unique passwords on all web applications — especially administrative interfaces.
-- Implement an account lockout policy (e.g., 5 failed attempts → 15-minute lockout) to slow brute-force attacks.
-- Add multi-factor authentication (MFA) to administrative panels.
-- Remove or change all vendor-default credentials before deploying any application to production.
-
----
-
-### Finding 2 — Forced Authentication via File Upload (SCF Attack)
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1187 — Forced Authentication |
-| **Description** | The firmware upload feature places user-submitted files on a network share that employees browse using Windows Explorer. An attacker can upload a `.scf` or `.lnk` file that forces NTLM authentication to an external server, leaking NTLMv2 hashes. |
-
-**Recommendations:**
-- **Input validation:** Restrict uploaded file types to expected firmware formats (e.g., `.bin`, `.fw`, `.hex`). Reject all other extensions including `.scf`, `.lnk`, `.url`, `.library-ms`, and `.searchConnector-ms`.
-- **Network segmentation:** Block outbound SMB (TCP 445) and NetBIOS (TCP 137–139) traffic from internal workstations to external/untrusted networks at the firewall level. This prevents NTLM coercion from reaching an attacker's listener even if a malicious file is uploaded.
-- **Disable NTLM where possible:** Migrate authentication to Kerberos-only by configuring the GPO *Network security: Restrict NTLM: Outgoing NTLM traffic to remote servers* → **Deny all**.
-- **Automate file processing:** Replace manual file review with an automated ingestion pipeline that processes firmware files programmatically, never rendering them in Explorer.
-
----
-
-### Finding 3 — Weak User Password
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟠 High |
-| **MITRE**     | T1110.002 — Password Cracking |
-| **Description** | The user `tony`'s password (`liltony`) was cracked from the captured NTLMv2 hash in seconds using the common `rockyou.txt` wordlist. |
-
-**Recommendations:**
-- Enforce a minimum password length of 14+ characters with complexity requirements.
-- Deploy a password filter (e.g., Azure AD Password Protection or `ncrack`-based custom filters) that rejects passwords found in common wordlists.
-- Implement regular password audits by running offline cracking against the NTDS.dit or SAM database to proactively identify weak passwords.
-- Consider passwordless authentication (Windows Hello for Business, FIDO2 keys) for privileged accounts.
-
----
-
-### Finding 4 — SMB Signing Disabled
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟡 Medium |
-| **MITRE**     | T1557.001 — LLMNR/NBT-NS Poisoning |
-| **Description** | SMB message signing is disabled on the target host, allowing potential man-in-the-middle and NTLM relay attacks. |
-
-**Recommendations:**
-- Enable and **require** SMB signing on all Windows hosts via Group Policy:
-  - *Microsoft network server: Digitally sign communications (always)* → **Enabled**
-  - *Microsoft network client: Digitally sign communications (always)* → **Enabled**
-- Disable LLMNR and NBT-NS via GPO to eliminate poisoning vectors.
-- Consider deploying EPA (Extended Protection for Authentication) on all services to bind channel and service information to the NTLM exchange, preventing relay.
-
----
-
-### Finding 5 — Ricoh Printer Driver Local Privilege Escalation (CVE-2019-19363)
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🔴 Critical |
-| **MITRE**     | T1574.001 — DLL Search Order Hijacking |
-| **Description** | The installed Ricoh PCL6 UniversalDriver V4.23 creates its driver directory with overly permissive ACLs. Any local user can replace `headerfooter.dll`, which is subsequently loaded by the Print Spooler (running as SYSTEM), resulting in arbitrary code execution as SYSTEM. |
-
-**Recommendations:**
-- **Patch immediately:** Update the Ricoh driver to a version that fixes CVE-2019-19363 (V4.26+), or remove it entirely if the printer is no longer in use.
-- **Harden the Print Spooler:**
-  - Disable the Print Spooler service on servers that do not need printing (`Stop-Service Spooler; Set-Service Spooler -StartupType Disabled`).
-  - Restrict printer driver installation via GPO: *Point and Print Restrictions* → **Only allow installation from approved servers**.
-- **Fix directory ACLs:** Audit all printer driver directories under `C:\ProgramData\` and `C:\Windows\System32\spool\drivers\` for overly permissive ACLs. Remove `Full Control` / `Modify` permissions for non-administrative users.
-- **Monitor DLL loads:** Deploy Sysmon with a configuration that logs DLL loads by `spoolsv.exe` (Event ID 7) from non-standard paths. Alert on any `headerfooter.dll` load from a user-writable directory.
-
----
-
-### Finding 6 — WinRM Exposed Without Network Restrictions
-
-| Attribute     | Detail |
-|---------------|--------|
-| **Severity**  | 🟡 Medium |
-| **MITRE**     | T1021.006 — Remote Services: Windows Remote Management |
-| **Description** | The WinRM service (port 5985) is accessible from any network without IP-based restrictions. Combined with valid credentials, this provides a clean interactive shell. |
-
-**Recommendations:**
-- Restrict WinRM listeners to specific source IP ranges using `winrm set winrm/config/service @{IPv4Filter="10.0.0.0/8"}` or Windows Firewall rules.
-- Require HTTPS (port 5986) for WinRM to encrypt traffic in transit.
-- Limit WinRM access to dedicated management VLANs / jump hosts only.
-- Audit the **Remote Management Users** group membership and remove users who do not require remote management access.
-
----
-
-## 6. Tools Used
+## 5. Tools Used
 
 | Tool           | Purpose                                 |
 |----------------|-----------------------------------------|
@@ -450,7 +349,7 @@ C:\Windows\system32> type c:\Users\Administrator\Desktop\root.txt
 
 ---
 
-## 7. Lessons Learned
+## 6. Lessons Learned
 
 1. **SCF files are underrated** — unlike `.lnk` files, `.scf` files require no special tooling to craft and work reliably for NTLM coercion whenever a user browses a directory in Explorer. They're plain-text and trivially customizable.
 2. **PowerShell history is gold** — the `ConsoleHost_history.txt` file revealed the exact printer driver installed, pointing directly to the privilege escalation vector. This file exists by default on modern Windows and is rarely cleaned by administrators.
